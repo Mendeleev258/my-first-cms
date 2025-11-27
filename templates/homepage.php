@@ -1,4 +1,3 @@
-
 <?php include "templates/include/header.php" ?>
     <ul id="headlines">
     <?php foreach ($results['articles'] as $article) { ?>
@@ -26,7 +25,16 @@
                     </span>
                 <?php } ?>
             </h2>
-            <p class="summary"><?php echo htmlspecialchars($article->summary)?></p>
+            <p class="summary">
+                <?php 
+                // Берем первые 50 символов из content и добавляем многоточие
+                $shortContent = mb_substr($article->content, 0, 50, 'UTF-8');
+                if (mb_strlen($article->content, 'UTF-8') > 50) {
+                    $shortContent .= '...';
+                }
+                echo htmlspecialchars($shortContent);
+                ?>
+            </p>
             <img id="loader-identity" src="JS/ajax-loader.gif" alt="gif">
             
             <ul class="ajax-load">
@@ -41,5 +49,3 @@
     </ul>
     <p><a href="./?action=archive">Article Archive</a></p>
 <?php include "templates/include/footer.php" ?>
-
-    

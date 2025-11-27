@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Класс для обработки статей
  */
@@ -38,6 +37,11 @@ class Article
     public $content = null;
     
     /**
+    * @var int Активна ли статья (0 или 1)
+    */
+    public $active = 1;  // Добавляем новое поле со значением по умолчанию 1
+    
+    /**
      * Создаст объект статьи
      * 
      * @param array $data массив значений (столбцов) строки таблицы статей
@@ -70,6 +74,11 @@ class Article
       if (isset($data['content'])) {
           $this->content = $data['content'];  
       }
+      
+      // Добавляем обработку поля active
+      if (isset($data['active'])) {
+          $this->active = (int) $data['active'];  
+      }
     }
 
 
@@ -78,20 +87,23 @@ class Article
     *
     * @param assoc Значения записи формы
     */
-    public function storeFormValues ( $params ) {
+    public function storeFormValues($params) {
+        // Сохраняем все параметры
+        $this->__construct($params);
 
-      // Сохраняем все параметры
-      $this->__construct( $params );
-
-      // Разбираем и сохраняем дату публикации
-      if ( isset($params['publicationDate']) ) {
-        $publicationDate = explode ( '-', $params['publicationDate'] );
-
-        if ( count($publicationDate) == 3 ) {
-          list ( $y, $m, $d ) = $publicationDate;
-          $this->publicationDate = mktime ( 0, 0, 0, $m, $d, $y );
+        // Разбираем и сохраняем дату публикации
+        if (isset($params['publicationDate'])) {
+            $publicationDate = explode('-', $params['publicationDate']);
+            if (count($publicationDate) == 3) {
+                list($y, $m, $d) = $publicationDate;
+                $this->publicationDate = mktime(0, 0, 0, $m, $d, $y);
+            }
         }
-      }
+        
+        // Обрабатываем поле active (для checkbox)
+        if (!isset($params['active'])) {
+            $this->active = 0; // Если checkbox не отмечен
+        }
     }
 
 
@@ -127,28 +139,39 @@ class Article
     * @return Array|false Двух элементный массив: results => массив объектов Article; totalRows => общее количество строк
     */
     public static function getList($numRows=1000000, 
-            $categoryId=null, $order="publicationDate DESC") 
-    {
+        $categoryId=null, $order="publicationDate DESC", $includeInactive=false) {
         $conn = new PDO(DB_DSN, DB_USERNAME, DB_PASSWORD);
         $fromPart = "FROM articles";
-        $categoryClause = $categoryId ? "WHERE categoryId = :categoryId" : "";
+        $whereClause = "";
+        $conditions = [];
+        
+        // Добавляем условие для категории если указано
+        if ($categoryId) {
+            $conditions[] = "categoryId = :categoryId";
+        }
+        
+        // Добавляем условие для активных статей, если не запрошены все
+        if (!$includeInactive) {
+            $conditions[] = "active = 1";
+        }
+        
+        if (!empty($conditions)) {
+            $whereClause = "WHERE " . implode(" AND ", $conditions);
+        }
+        
         $sql = "SELECT *, UNIX_TIMESTAMP(publicationDate) 
                 AS publicationDate
-                $fromPart $categoryClause
+                $fromPart $whereClause
                 ORDER BY  $order  LIMIT :numRows";
         
         $st = $conn->prepare($sql);
         $st->bindValue(":numRows", $numRows, PDO::PARAM_INT);
-	/**
-	 * Можно использовать debugDumpParams() для отладки параметров, 
-	 * привязанных выше с помощью bind()
-	 * @see https://www.php.net/manual/ru/pdostatement.debugdumpparams.php
-	 */
-      
-        if ($categoryId) 
+    
+        if ($categoryId) {
             $st->bindValue( ":categoryId", $categoryId, PDO::PARAM_INT);
+        }
         
-        $st->execute(); // выполняем запрос к базе данных
+        $st->execute();
         $list = array();
 
         while ($row = $st->fetch()) {
@@ -157,11 +180,12 @@ class Article
         }
 
         // Получаем общее количество статей, которые соответствуют критерию
-        $sql = "SELECT COUNT(*) AS totalRows $fromPart $categoryClause";
-	$st = $conn->prepare($sql);
-	if ($categoryId) 
+        $sql = "SELECT COUNT(*) AS totalRows $fromPart $whereClause";
+        $st = $conn->prepare($sql);
+        if ($categoryId) {
             $st->bindValue( ":categoryId", $categoryId, PDO::PARAM_INT);
-	$st->execute(); // выполняем запрос к базе данных                    
+        }
+        $st->execute();                    
         $totalRows = $st->fetch();
         $conn = null;
         
@@ -170,7 +194,7 @@ class Article
             "totalRows" => $totalRows[0]
             ) 
         );
-    }
+}
 
     /**
     * Вставляем текущий объект Article в базу данных, устанавливаем его ID
@@ -182,13 +206,14 @@ class Article
 
         // Вставляем статью
         $conn = new PDO( DB_DSN, DB_USERNAME, DB_PASSWORD );
-        $sql = "INSERT INTO articles ( publicationDate, categoryId, title, summary, content ) VALUES ( FROM_UNIXTIME(:publicationDate), :categoryId, :title, :summary, :content )";
+        $sql = "INSERT INTO articles ( publicationDate, categoryId, title, summary, content, active ) VALUES ( FROM_UNIXTIME(:publicationDate), :categoryId, :title, :summary, :content, :active )";
         $st = $conn->prepare ( $sql );
         $st->bindValue( ":publicationDate", $this->publicationDate, PDO::PARAM_INT );
         $st->bindValue( ":categoryId", $this->categoryId, PDO::PARAM_INT );
         $st->bindValue( ":title", $this->title, PDO::PARAM_STR );
         $st->bindValue( ":summary", $this->summary, PDO::PARAM_STR );
         $st->bindValue( ":content", $this->content, PDO::PARAM_STR );
+        $st->bindValue( ":active", $this->active, PDO::PARAM_INT );
         $st->execute();
         $this->id = $conn->lastInsertId();
         $conn = null;
@@ -208,7 +233,7 @@ class Article
       $conn = new PDO( DB_DSN, DB_USERNAME, DB_PASSWORD );
       $sql = "UPDATE articles SET publicationDate=FROM_UNIXTIME(:publicationDate),"
               . " categoryId=:categoryId, title=:title, summary=:summary,"
-              . " content=:content WHERE id = :id";
+              . " content=:content, active=:active WHERE id = :id";
       
       $st = $conn->prepare ( $sql );
       $st->bindValue( ":publicationDate", $this->publicationDate, PDO::PARAM_INT );
@@ -216,6 +241,7 @@ class Article
       $st->bindValue( ":title", $this->title, PDO::PARAM_STR );
       $st->bindValue( ":summary", $this->summary, PDO::PARAM_STR );
       $st->bindValue( ":content", $this->content, PDO::PARAM_STR );
+      $st->bindValue( ":active", $this->active, PDO::PARAM_INT );
       $st->bindValue( ":id", $this->id, PDO::PARAM_INT );
       $st->execute();
       $conn = null;
@@ -238,4 +264,31 @@ class Article
       $conn = null;
     }
 
+    /**
+    * Метод для мягкого удаления (деактивации) статьи
+    */
+    public function deactivate() {
+        if ( is_null( $this->id ) ) trigger_error ( "Article::deactivate(): Attempt to deactivate an Article object that does not have its ID property set.", E_USER_ERROR );
+
+        $conn = new PDO( DB_DSN, DB_USERNAME, DB_PASSWORD );
+        $st = $conn->prepare ( "UPDATE articles SET active = 0 WHERE id = :id" );
+        $st->bindValue( ":id", $this->id, PDO::PARAM_INT );
+        $st->execute();
+        $this->active = 0;
+        $conn = null;
+    }
+
+    /**
+    * Метод для активации статьи
+    */
+    public function activate() {
+        if ( is_null( $this->id ) ) trigger_error ( "Article::activate(): Attempt to activate an Article object that does not have its ID property set.", E_USER_ERROR );
+
+        $conn = new PDO( DB_DSN, DB_USERNAME, DB_PASSWORD );
+        $st = $conn->prepare ( "UPDATE articles SET active = 1 WHERE id = :id" );
+        $st->bindValue( ":id", $this->id, PDO::PARAM_INT );
+        $st->execute();
+        $this->active = 1;
+        $conn = null;
+    }
 }
