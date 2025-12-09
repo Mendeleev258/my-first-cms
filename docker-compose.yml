@@ -1,0 +1,34 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: cms_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: cms
+      MYSQL_ROOT_PASSWORD: qwe123
+    ports:
+      - "3306:3306"
+    volumes:
+      - cms_db_data:/var/lib/mysql
+      - ./db_cms.sql:/docker-entrypoint-initdb.d/init.sql
+      # config-local.php больше не используется, все конфигурации в config.php
+      # Дамп базы данных включает в себя проверку и добавление столбца active при необходимости
+
+  web:
+    build: .
+    container_name: cms_web
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=cms
+      - DB_USER=root
+      - DB_PASS=qwe123
+    depends_on:
+      - db
+    volumes:
+      - .:/var/www/html
+
+volumes:
+  cms_db_data:

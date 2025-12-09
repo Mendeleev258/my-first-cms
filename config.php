@@ -6,47 +6,26 @@ try {
     
     date_default_timezone_set("Europe/Moscow");  // http://www.php.net/manual/en/timezones.php
     
-    // Настройки БД и остальных параметров будем хранить в массиве
-    $CmsConfiguration = array(); 
-    $CmsConfiguration["DB_DSN"] = "mysql:host=localhost;dbname=cms;charset=utf8;" ;
-    $CmsConfiguration["DB_USERNAME"] = "root";
-    $CmsConfiguration["DB_PASSWORD"] = "qwe123";
+    // Настройки БД и остальных параметров будем хранить в переменных
+    $DB_DSN = "mysql:host=" . (getenv('DB_HOST') ?: 'localhost') . ";dbname=" . (getenv('DB_NAME') ?: 'cms') . ";charset=utf8;";
+    $DB_USERNAME = getenv('DB_USER') ?: 'root';
+    $DB_PASSWORD = getenv('DB_PASS') ?: 'qwe123';
     
-    // Объявление констант, используемых в проекте
-    $CmsConfiguration["CLASS_PATH"] = "classes";
-    $CmsConfiguration["TEMPLATE_PATH"] = "templates";
-    $CmsConfiguration["HOMEPAGE_NUM_ARTICLES"] = 5;
-    $CmsConfiguration["ADMIN_USERNAME"] = "admin";
-    $CmsConfiguration["ADMIN_PASSWORD"] = "mypass";
+    // Объявление переменных, используемых в проекте
+    $CLASS_PATH = "classes";
+    $TEMPLATE_PATH = "templates";
+    $HOMEPAGE_NUM_ARTICLES = 5;
+    $ADMIN_USERNAME = "admin";
+    $ADMIN_PASSWORD = "mypass";
     
     
-    include 'config-local.php'; /* подключаем локальный конфигурационный файл
-     *  (для конкретной машины/сервера),
-     *  в котором мы можем переопределить любые поля конфигурационного массива,
-     *  например имя базы данных или пароль */
-    
-    // после того, как значения конфигурации определены, создаём для них константы
-    defineConstants($CmsConfiguration);
+    /* config-local.php больше не используется, все конфигурации теперь в config.php */
     
     // Подключаем Классы моделей (классы, отвечающие за работу с сущностями базы данных)
-    require(CLASS_PATH . "/Article.php");
-    require(CLASS_PATH . "/Category.php");     
+    require($CLASS_PATH . "/Article.php");
+    require($CLASS_PATH . "/Category.php");
 
 } catch (Exception $ex) {
     echo "При загрузке конфигураций возникла проблема!<br><br>";
     error_log($ex->getMessage());
-}
-
-/**
- * Создаст константы, хранящие настройки приложения
- * 
- * @param array $constatsNameAndValues массив, содержащий в качестве ключей имена констант, 
- *  которые нужно объявить, а в качестве значений -- знчения этих констант
- */
-function defineConstants($constatsNameAndValues)
-{
-    // обходим массив и определяем нужные константы
-    foreach ($constatsNameAndValues as $constName => $constValue) {
-       define($constName, $constValue);
-    }
 }

@@ -54,24 +54,28 @@ function login() {
 
         // Пользователь получает форму входа: попытка авторизировать пользователя
 
-        if ($_POST['username'] == ADMIN_USERNAME 
-                && $_POST['password'] == ADMIN_PASSWORD) {
+        global $ADMIN_USERNAME, $ADMIN_PASSWORD;
+        if ($_POST['username'] == $ADMIN_USERNAME
+                && $_POST['password'] == $ADMIN_PASSWORD) {
 
           // Вход прошел успешно: создаем сессию и перенаправляем на страницу администратора
-          $_SESSION['username'] = ADMIN_USERNAME;
+          global $ADMIN_USERNAME;
+          $_SESSION['username'] = $ADMIN_USERNAME;
           header( "Location: admin.php");
 
         } else {
 
           // Ошибка входа: выводим сообщение об ошибке для пользователя
           $results['errorMessage'] = "Неправильный пароль, попробуйте ещё раз.";
-          require( TEMPLATE_PATH . "/admin/loginForm.php" );
+          global $TEMPLATE_PATH;
+          require( $TEMPLATE_PATH . "/admin/loginForm.php" );
         }
 
     } else {
 
       // Пользователь еще не получил форму: выводим форму
-      require(TEMPLATE_PATH . "/admin/loginForm.php");
+      global $TEMPLATE_PATH;
+      require($TEMPLATE_PATH . "/admin/loginForm.php");
     }
 
 }
@@ -115,7 +119,8 @@ function newArticle() {
         $results['article'] = new Article;
         $data = Category::getList();
         $results['categories'] = $data['results'];
-        require( TEMPLATE_PATH . "/admin/editArticle.php" );
+        global $TEMPLATE_PATH;
+        require( $TEMPLATE_PATH . "/admin/editArticle.php" );
     }
 }
 
@@ -153,7 +158,8 @@ function editArticle() {
         $results['article'] = Article::getById((int)$_GET['articleId']);
         $data = Category::getList();
         $results['categories'] = $data['results'];
-        require(TEMPLATE_PATH . "/admin/editArticle.php");
+        global $TEMPLATE_PATH;
+        require($TEMPLATE_PATH . "/admin/editArticle.php");
     }
 
 }
@@ -200,7 +206,8 @@ function listArticles() {
         }
     }
 
-    require(TEMPLATE_PATH . "/admin/listArticles.php" );
+    global $TEMPLATE_PATH;
+    require($TEMPLATE_PATH . "/admin/listArticles.php" );
 }
 
 function listCategories() {
@@ -220,7 +227,8 @@ function listCategories() {
         if ( $_GET['status'] == "categoryDeleted" ) $results['statusMessage'] = "Category deleted.";
     }
 
-    require( TEMPLATE_PATH . "/admin/listCategories.php" );
+    global $TEMPLATE_PATH;
+    require( $TEMPLATE_PATH . "/admin/listCategories.php" );
 }
 	  
 	  
@@ -246,7 +254,8 @@ function newCategory() {
 
         // User has not posted the category edit form yet: display the form
         $results['category'] = new Category;
-        require( TEMPLATE_PATH . "/admin/editCategory.php" );
+        global $TEMPLATE_PATH;
+        require( $TEMPLATE_PATH . "/admin/editCategory.php" );
     }
 
 }
@@ -279,7 +288,8 @@ function editCategory() {
 
         // User has not posted the category edit form yet: display the form
         $results['category'] = Category::getById( (int)$_GET['categoryId'] );
-        require( TEMPLATE_PATH . "/admin/editCategory.php" );
+        global $TEMPLATE_PATH;
+        require( $TEMPLATE_PATH . "/admin/editCategory.php" );
     }
 
 }

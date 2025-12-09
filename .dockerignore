@@ -1,0 +1,13 @@
+.git
+.gitignore
+README.md
+CHANGELOG.md
+.dockerignore
+.docker
+.vscode/
+node_modules/
+npm-debug.log
+.DS_Store
+logs/
+*.log
+# config-local.php больше не используется, все конфигурации в config.php

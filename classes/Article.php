@@ -114,7 +114,8 @@ class Article
     * @return Article|false Объект статьи или false, если запись не найдена или возникли проблемы
     */
     public static function getById($id) {
-        $conn = new PDO( DB_DSN, DB_USERNAME, DB_PASSWORD );
+        global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+        $conn = new PDO( $DB_DSN, $DB_USERNAME, $DB_PASSWORD );
         $sql = "SELECT *, UNIX_TIMESTAMP(publicationDate) "
                 . "AS publicationDate FROM articles WHERE id = :id";
         $st = $conn->prepare($sql);
@@ -140,7 +141,8 @@ class Article
     */
     public static function getList($numRows=1000000, 
         $categoryId=null, $order="publicationDate DESC", $includeInactive=false) {
-        $conn = new PDO(DB_DSN, DB_USERNAME, DB_PASSWORD);
+        global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+        $conn = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD);
         $fromPart = "FROM articles";
         $whereClause = "";
         $conditions = [];
@@ -205,7 +207,8 @@ class Article
         if ( !is_null( $this->id ) ) trigger_error ( "Article::insert(): Attempt to insert an Article object that already has its ID property set (to $this->id).", E_USER_ERROR );
 
         // Вставляем статью
-        $conn = new PDO( DB_DSN, DB_USERNAME, DB_PASSWORD );
+        global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+        $conn = new PDO( $DB_DSN, $DB_USERNAME, $DB_PASSWORD );
         $sql = "INSERT INTO articles ( publicationDate, categoryId, title, summary, content, active ) VALUES ( FROM_UNIXTIME(:publicationDate), :categoryId, :title, :summary, :content, :active )";
         $st = $conn->prepare ( $sql );
         $st->bindValue( ":publicationDate", $this->publicationDate, PDO::PARAM_INT );
@@ -230,7 +233,8 @@ class Article
               . "that does not have its ID property set.", E_USER_ERROR );
 
       // Обновляем статью
-      $conn = new PDO( DB_DSN, DB_USERNAME, DB_PASSWORD );
+      global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+      $conn = new PDO( $DB_DSN, $DB_USERNAME, $DB_PASSWORD );
       $sql = "UPDATE articles SET publicationDate=FROM_UNIXTIME(:publicationDate),"
               . " categoryId=:categoryId, title=:title, summary=:summary,"
               . " content=:content, active=:active WHERE id = :id";
@@ -257,7 +261,8 @@ class Article
       if ( is_null( $this->id ) ) trigger_error ( "Article::delete(): Attempt to delete an Article object that does not have its ID property set.", E_USER_ERROR );
 
       // Удаляем статью
-      $conn = new PDO( DB_DSN, DB_USERNAME, DB_PASSWORD );
+      global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+      $conn = new PDO( $DB_DSN, $DB_USERNAME, $DB_PASSWORD );
       $st = $conn->prepare ( "DELETE FROM articles WHERE id = :id LIMIT 1" );
       $st->bindValue( ":id", $this->id, PDO::PARAM_INT );
       $st->execute();
@@ -270,7 +275,8 @@ class Article
     public function deactivate() {
         if ( is_null( $this->id ) ) trigger_error ( "Article::deactivate(): Attempt to deactivate an Article object that does not have its ID property set.", E_USER_ERROR );
 
-        $conn = new PDO( DB_DSN, DB_USERNAME, DB_PASSWORD );
+        global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+        $conn = new PDO( $DB_DSN, $DB_USERNAME, $DB_PASSWORD );
         $st = $conn->prepare ( "UPDATE articles SET active = 0 WHERE id = :id" );
         $st->bindValue( ":id", $this->id, PDO::PARAM_INT );
         $st->execute();
@@ -284,7 +290,8 @@ class Article
     public function activate() {
         if ( is_null( $this->id ) ) trigger_error ( "Article::activate(): Attempt to activate an Article object that does not have its ID property set.", E_USER_ERROR );
 
-        $conn = new PDO( DB_DSN, DB_USERNAME, DB_PASSWORD );
+        global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+        $conn = new PDO( $DB_DSN, $DB_USERNAME, $DB_PASSWORD );
         $st = $conn->prepare ( "UPDATE articles SET active = 1 WHERE id = :id" );
         $st->bindValue( ":id", $this->id, PDO::PARAM_INT );
         $st->execute();

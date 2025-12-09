@@ -8,7 +8,8 @@ try {
     initApplication();
 } catch (Exception $e) { 
     $results['errorMessage'] = $e->getMessage();
-    require(TEMPLATE_PATH . "/viewErrorPage.php");
+    global $TEMPLATE_PATH;
+    require($TEMPLATE_PATH . "/viewErrorPage.php");
 }
 
 
@@ -51,7 +52,8 @@ function archive()
     $results['pageHeading'] = $results['category'] ?  $results['category']->name : "Article Archive";
     $results['pageTitle'] = $results['pageHeading'] . " | Widget News";
     
-    require( TEMPLATE_PATH . "/archive.php" );
+    global $TEMPLATE_PATH;
+    require( $TEMPLATE_PATH . "/archive.php" );
 }
 
 /**
@@ -77,7 +79,8 @@ function viewArticle()
     $results['category'] = Category::getById($results['article']->categoryId);
     $results['pageTitle'] = $results['article']->title . " | Простая CMS";
     
-    require(TEMPLATE_PATH . "/viewArticle.php");
+    global $TEMPLATE_PATH;
+    require($TEMPLATE_PATH . "/viewArticle.php");
 }
 
 /**
@@ -86,7 +89,8 @@ function viewArticle()
 function homepage() 
 {
     $results = array();
-    $data = Article::getList(HOMEPAGE_NUM_ARTICLES);
+    global $HOMEPAGE_NUM_ARTICLES;
+    $data = Article::getList($HOMEPAGE_NUM_ARTICLES);
     $results['articles'] = $data['results'];
     $results['totalRows'] = $data['totalRows'];
     
@@ -103,6 +107,7 @@ function homepage()
 //    echo "</pre>";
 //    die();
     
-    require(TEMPLATE_PATH . "/homepage.php");
+    global $TEMPLATE_PATH;
+    require($TEMPLATE_PATH . "/homepage.php");
     
 }
