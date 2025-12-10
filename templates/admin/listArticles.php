@@ -17,7 +17,8 @@
               <th>Article</th>
               <th>Category</th>
               <th>Subcategory</th>  <!-- Добавляем заголовок колонки подкатегории -->
-              <th>Active</th>  <!-- Добавляем заголовок колонки -->
+              <th>Authors</th>  <!-- Добавляем заголовок колонки авторов -->
+              <th>Active</th> <!-- Добавляем заголовок колонки -->
             </tr>
 
 <!--<?php echo "<pre>"; print_r ($results['articles'][2]->publicationDate); echo "</pre>"; ?> Обращаемся к дате массива $results. Дата = 0 -->
@@ -50,6 +51,19 @@
                 else {
                     echo "Без подкатегории";
                 }?>
+              </td>
+              <td>
+                <?php
+                if (!empty($article->authors)) {
+                    $authorNames = array();
+                    foreach ($article->authors as $author) {
+                        $authorNames[] = htmlspecialchars($author['login']);
+                    }
+                    echo implode(', ', $authorNames);
+                } else {
+                    echo "No authors";
+                }
+                ?>
               </td>
               <td>
                 <!-- Добавляем отображение статуса активности -->

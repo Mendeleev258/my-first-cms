@@ -50,6 +50,15 @@ switch ($action) {
     case 'deleteSubcategory':
         deleteSubcategory();
         break;
+    case 'listUsers':
+        listUsers();
+        break;
+    case 'editUser':
+        editUser();
+        break;
+    case 'deleteUser':
+        deleteUser();
+        break;
     default:
         listArticles();
 }
@@ -129,6 +138,10 @@ function newArticle() {
             // Если есть ошибки, возвращаем пользователя обратно к форме с данными и ошибками
             $article = new Article();
             $article->storeFormValues($_POST);
+            
+            // Обрабатываем авторов
+            $article->authorIds = isset($_POST['authorIds']) ? $_POST['authorIds'] : array();
+            
             $results['article'] = $article;
             $results['errors'] = $errors;
             
@@ -149,6 +162,18 @@ function newArticle() {
             $results['subcategories'] = $subcatData['results'];
             $results['groupedSubcategories'] = $groupedSubcategories;
             
+            // Загружаем пользователей для отображения в форме
+            global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+            $conn = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD);
+            $sql = "SELECT id, login FROM users ORDER BY login";
+            $st = $conn->prepare($sql);
+            $st->execute();
+            $results['users'] = array();
+            while ($row = $st->fetch()) {
+                $results['users'][] = (object)$row;
+            }
+            $conn = null;
+            
             global $TEMPLATE_PATH;
             require($TEMPLATE_PATH . "/admin/editArticle.php");
         } else {
@@ -159,6 +184,10 @@ function newArticle() {
     //            print_r($article);
     //            echo "<pre>";
     //            А здесь данные массива $article уже неполные(есть только Число от даты, категория и полный текст статьи)
+            
+            // Обрабатываем авторов
+            $article->authorIds = isset($_POST['authorIds']) ? $_POST['authorIds'] : array();
+            
             $article->insert();
             header( "Location: admin.php?status=changesSaved" );
         }
@@ -187,6 +216,18 @@ function newArticle() {
         $results['subcategories'] = $subcatData['results'];
         $results['groupedSubcategories'] = $groupedSubcategories;
         
+        // Загружаем пользователей для отображения в форме
+        global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+        $conn = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD);
+        $sql = "SELECT id, login FROM users ORDER BY login";
+        $st = $conn->prepare($sql);
+        $st->execute();
+        $results['users'] = array();
+        while ($row = $st->fetch()) {
+            $results['users'][] = (object)$row;
+        }
+        $conn = null;
+        
         global $TEMPLATE_PATH;
         require( $TEMPLATE_PATH . "/admin/editArticle.php" );
     }
@@ -195,7 +236,7 @@ function newArticle() {
 
 /**
  * Редактирование статьи
- * 
+ *
  * @return null
  */
 function editArticle() {
@@ -228,6 +269,10 @@ function editArticle() {
         if (!empty($errors)) {
             // Если есть ошибки, возвращаем пользователя обратно к форме с данными и ошибками
             $article->storeFormValues($_POST);
+            
+            // Обрабатываем авторов
+            $article->authorIds = isset($_POST['authorIds']) ? $_POST['authorIds'] : array();
+            
             $results['article'] = $article;
             $results['errors'] = $errors;
             
@@ -248,10 +293,26 @@ function editArticle() {
             $results['subcategories'] = $subcatData['results'];
             $results['groupedSubcategories'] = $groupedSubcategories;
             
+            // Загружаем пользователей для отображения в форме
+            global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+            $conn = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD);
+            $sql = "SELECT id, login FROM users ORDER BY login";
+            $st = $conn->prepare($sql);
+            $st->execute();
+            $results['users'] = array();
+            while ($row = $st->fetch()) {
+                $results['users'][] = (object)$row;
+            }
+            $conn = null;
+            
             global $TEMPLATE_PATH;
             require($TEMPLATE_PATH . "/admin/editArticle.php");
         } else {
             $article->storeFormValues( $_POST );
+            
+            // Обрабатываем авторов
+            $article->authorIds = isset($_POST['authorIds']) ? $_POST['authorIds'] : array();
+            
             $article->update();
             header( "Location: admin.php?status=changesSaved" );
         }
@@ -281,6 +342,18 @@ function editArticle() {
         $results['subcategories'] = $subcatData['results'];
         $results['groupedSubcategories'] = $groupedSubcategories;
         
+        // Загружаем пользователей для отображения в форме
+        global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+        $conn = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD);
+        $sql = "SELECT id, login FROM users ORDER BY login";
+        $st = $conn->prepare($sql);
+        $st->execute();
+        $results['users'] = array();
+        while ($row = $st->fetch()) {
+            $results['users'][] = (object)$row;
+        }
+        $conn = null;
+        
         global $TEMPLATE_PATH;
         require($TEMPLATE_PATH . "/admin/editArticle.php");
     }
@@ -303,7 +376,7 @@ function deleteArticle() {
 function listArticles() {
     $results = array();
     
-    $data = Article::getList(1000000,null,"publicationDate DESC",true);
+    $data = Article::getList(100000,null,"publicationDate DESC",true);
     $results['articles'] = $data['results'];
     $results['totalRows'] = $data['totalRows'];
     
@@ -432,7 +505,7 @@ function deleteCategory() {
         return;
     }
 
-    $articles = Article::getList( 1000000, $category->id );
+    $articles = Article::getList( 10000, $category->id );
 
     if ( $articles['totalRows'] > 0 ) {
         header( "Location: admin.php?action=listCategories&error=categoryContainsArticles" );
@@ -542,5 +615,33 @@ function deleteSubcategory() {
     header( "Location: admin.php?action=listSubcategories&status=subcategoryDeleted" );
 }
 
+function listUsers() {
+    $results = array();
+    $results['pageTitle'] = "User Management";
+    global $TEMPLATE_PATH;
+    require($TEMPLATE_PATH . "/admin/listUsers.php");
+}
 
+function editUser() {
+    $results = array();
+    $results['pageTitle'] = isset($_GET['id']) ? "Edit User" : "Create User";
+    global $TEMPLATE_PATH;
+    require($TEMPLATE_PATH . "/admin/editUser.php");
+}
+
+function deleteUser() {
+    global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+    
+    try {
+        $conn = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD);
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
+        $user_id = (int)$_GET['id'];
+        $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->execute([$user_id]);
+        
+        header("Location: admin.php?action=listUsers&status=userDeleted");
+    } catch (PDOException $e) {
+        header("Location: admin.php?action=listUsers&error=databaseError");
+    }
+}

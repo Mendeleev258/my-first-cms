@@ -21,6 +21,18 @@
         
     </p>
 
+    <?php if (!empty($results['article']->authors)) { ?>
+        <p><strong>Authors:</strong>
+        <?php
+        $authorNames = array();
+        foreach ($results['article']->authors as $author) {
+            $authorNames[] = htmlspecialchars($author['login']);
+        }
+        echo implode(', ', $authorNames);
+        ?>
+        </p>
+    <?php } ?>
+
     <p><a href="./">Вернуться на главную страницу</a></p>
 	  
 <?php include "templates/include/footer.php" ?>    

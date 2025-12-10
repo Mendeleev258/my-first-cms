@@ -70,17 +70,27 @@
                   <?php } ?>
                 </select>
               </li>
+<li>
+  <label for="publicationDate">Publication Date</label>
+  <input type="date" name="publicationDate" id="publicationDate" placeholder="YYYY-MM-DD" required maxlength="10" value="<?php echo $results['article']->publicationDate ? date( "Y-m-d", $results['article']->publicationDate ) : "" ?>" />
+</li>
 
-              <li>
-                <label for="publicationDate">Publication Date</label>
-                <input type="date" name="publicationDate" id="publicationDate" placeholder="YYYY-MM-DD" required maxlength="10" value="<?php echo $results['article']->publicationDate ? date( "Y-m-d", $results['article']->publicationDate ) : "" ?>" />
-              </li>
+<li>
+  <label for="active">Make active</label>
+  <input type="checkbox" name="active" id="active" value="1"
+  <?php echo ($results['article']->active == 1) ? 'checked' : '' ?>>
+</li>
 
-              <li>
-                <label for="active">Make active</label>
-                <input type="checkbox" name="active" id="active" value="1" 
-                <?php echo ($results['article']->active == 1) ? 'checked' : '' ?>>
-              </li>
+<li>
+  <label for="authorIds">Authors</label>
+  <select name="authorIds[]" id="authorIds" multiple size="5">
+    <?php foreach ($results['users'] as $user) { ?>
+      <option value="<?php echo $user->id ?>"<?php echo (in_array($user->id, $results['article']->authorIds)) ? " selected" : "" ?>><?php echo htmlspecialchars($user->login) ?></option>
+    <?php } ?>
+  </select>
+  <p class="helpText">Hold Ctrl to select multiple authors</p>
+</li>
+
 
 
             </ul>
