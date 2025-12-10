@@ -13,13 +13,8 @@
         - а потом разверните в ней дамп из файла `db_cms.sql` (лежит в корне данного проекта): http://fkn.ktu10.com/?q=node/8944
 
    4) Все конфигурации находятся в файле `config.php`, включая настройки базы данных и другие параметры
-
-   5) Если возникает ошибка "Unknown column 'active' in 'where clause'", выполните следующие действия:
-      - Убедитесь, что в вашей базе данных есть столбец 'active' в таблице 'articles'
-      - При использовании Docker перезапустите контейнеры: docker-compose down && docker-compose up -d
-      - Или выполните SQL-запрос: ALTER TABLE articles ADD COLUMN active TINYINT NOT NULL DEFAULT 1;
    
-   6) Следуем инструкциям http://fkn.ktu10.com/?q=node/9428
+   5) Следуем инструкциям http://fkn.ktu10.com/?q=node/9428
     
 
 Удачной разработки!
