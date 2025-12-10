@@ -1,6 +1,122 @@
 <?php include "templates/include/header.php" ?>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="/ajax/loadArticle.js"></script>
+<script>
+$(document).ready(function() {
+    // NEW GET button functionality
+    $('a.showContentGETmethodNew').on('click', function(){
+        var contentId = $(this).attr('data-contentId');
+        showLoaderIdentity(contentId);
+        $.ajax({
+            url: './ajax/showContentsHandler.php?articleId=' + contentId,
+            type: 'GET',
+            dataType: 'html',
+            beforeSend: function() {
+                var id = "#article" + contentId;
+                $(id).html("Загрузка данных...");
+            },
+            success: function(data) {
+                hideLoaderIdentity(contentId);
+                var id = "#article" + contentId;
+                $(id).html(data);
+                console.log('Ответ получен');
+            },
+            error: function() {
+                hideLoaderIdentity(contentId);
+                var id = "#article" + contentId;
+                $(id).html("Ошибка!!!");
+                console.log('Ошибка соединения сервером');
+            }
+        });
+        return false;
+    });
+
+    // NEW POST button functionality (improved)
+    $('a.showContentPOSTmethodNew').on('click', function(){
+        var contentId = $(this).attr('data-contentId');
+        showLoaderIdentity(contentId);
+        $.ajax({
+            url: './ajax/showContentsHandler.php',
+            type: 'POST',
+            data: ({articleId: contentId}),
+            dataType: 'html',
+            beforeSend: function() {
+                var id = "#article" + contentId;
+                $(id).html("Загрузка данных...");
+            },
+            success: function(data) {
+                hideLoaderIdentity(contentId);
+                var id = "#article" + contentId;
+                $(id).html(data);
+                console.log('Ответ получен');
+            },
+            error: function() {
+                hideLoaderIdentity(contentId);
+                var id = "#article" + contentId;
+                $(id).html("Ошибка!!!");
+                console.log('Ошибка соединения с сервером');
+            }
+        });
+        return false;
+    });
+    
+    // Original POST button functionality (AJAX)
+    $('a.showContentPOSTmethodAjax').on('click', function(){
+        var contentId = $(this).attr('data-contentId');
+        showLoaderIdentity(contentId);
+        $.ajax({
+            url: './ajax/showContentsHandler.php',
+            type: 'POST',
+            data: ({articleId: contentId}),
+            dataType: 'html',
+            beforeSend: function() {
+                var id = "#article" + contentId;
+                $(id).html("Загрузка данных...");
+            },
+            success: function(data) {
+                hideLoaderIdentity(contentId);
+                var id = "#article" + contentId;
+                $(id).html(data);
+                console.log('Ответ получен');
+            },
+            error: function() {
+                hideLoaderIdentity(contentId);
+                var id = "#article" + contentId;
+                $(id).html("Ошибка!!!");
+                console.log('Ошибка соединения с сервером');
+            }
+        });
+        return false;
+    });
+    
+    // Original GET button functionality (AJAX)
+    $('a.showContentGETmethodAjax').on('click', function(){
+        var contentId = $(this).attr('data-contentId');
+        showLoaderIdentity(contentId);
+        $.ajax({
+            url: './ajax/showContentsHandler.php?articleId=' + contentId,
+            type: 'GET',
+            dataType: 'html',
+            beforeSend: function() {
+                var id = "#article" + contentId;
+                $(id).html("Загрузка данных...");
+            },
+            success: function(data) {
+                hideLoaderIdentity(contentId);
+                var id = "#article" + contentId;
+                $(id).html(data);
+                console.log('Ответ получен');
+            },
+            error: function() {
+                hideLoaderIdentity(contentId);
+                var id = "#article" + contentId;
+                $(id).html("Ошибка!!!");
+                console.log('Ошибка соединения сервером');
+            }
+        });
+        return false;
+    });
+});
+</script>
     <ul id="headlines">
     <?php
     $id = array();
@@ -60,17 +176,21 @@
                             echo htmlspecialchars($shortContent)?></p>
             
             <img id="loader-identity<?=$article->id?>" class="loader-identity"
-                 accesskey="              " src="/JS/ajax-loader.gif" alt="gif">
-            <a href=".?action=viewArticle&articleId=<?php echo $article->id?>" class="showContentPOSTmethod"
+                 style="display:none;" src="/JS/ajax-loader.gif" alt="gif">
+            <a href=".?action=viewArticle&articleId=<?php echo $article->id?>" class="showContentPOSTmethodAjax"
                 data-contentId="<?php
                                 echo $article->id?>">Запросить методом POST</a>
             
-            <a href=".?action=viewArticle&articleId=<?php echo $article->id?>" class="showContentGETmethod"
+            <a href=".?action=viewArticle&articleId=<?php echo $article->id?>" class="showContentGETmethodAjax"
                 data-contentId="<?php
                                 echo $article->id?>">Запросить методом GET</a>
 
-           <p class="loadArticle" style="cursor:pointer"
-                                  data-contentId="<?=$article->id?>">NEW POST</p>
+            <a href=".?action=viewArticle&articleId=<?php echo $article->id?>" class="showContentPOSTmethodNew"
+                data-contentId="<?php echo $article->id?>">POST (NEW)</a>
+            
+            <a href=".?action=viewArticle&articleId=<?php echo $article->id?>" class="showContentGETmethodNew"
+                data-contentId="<?php echo $article->id?>">GET (NEW)</a>
+            
             <div class="summary" id="article<?=$article->id?>">
             </div>
             
@@ -83,4 +203,4 @@
     <p><a href="./?action=archive">Article Archive</a></p>
 <?php include "templates/include/footer.php" ?>
 
-<script src="/JS/showContent.js"></sctipt>
+<script src="/JS/showContent.js"></script>
