@@ -45,9 +45,23 @@
                 <label for="subcategoryId">Article Subcategory</label>
                 <select name="subcategoryId">
                   <option value="0"<?php echo !$results['article']->subcategoryId ? " selected" : ""?>>(none)</option>
-                <?php foreach ( $results['subcategories'] as $subcategory ) { ?>
-                  <option value="<?php echo $subcategory->id?>"<?php echo ( $subcategory->id == $results['article']->subcategoryId ) ? " selected" : ""?>><?php echo htmlspecialchars( $subcategory->name )?></option>
-                <?php } ?>
+                  <?php foreach ( $results['groupedSubcategories'] as $categoryId => $subcategories ) { ?>
+                    <?php
+                    // Get category name for the optgroup
+                    $categoryName = '';
+                    foreach ($results['categories'] as $category) {
+                        if ($category->id == $categoryId) {
+                            $categoryName = htmlspecialchars($category->name);
+                            break;
+                        }
+                    }
+                    ?>
+                    <optgroup label="<?php echo $categoryName; ?>">
+                    <?php foreach ( $subcategories as $subcategory ) { ?>
+                      <option value="<?php echo $subcategory->id?>"<?php echo ( $subcategory->id == $results['article']->subcategoryId ) ? " selected" : ""?>><?php echo htmlspecialchars( $subcategory->name )?></option>
+                    <?php } ?>
+                    </optgroup>
+                  <?php } ?>
                 </select>
               </li>
 

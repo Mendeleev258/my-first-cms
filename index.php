@@ -34,7 +34,7 @@ function archive()
     $results = [];
     
     $categoryId = ( isset( $_GET['categoryId'] ) && $_GET['categoryId'] ) ? (int)$_GET['categoryId'] : null;
-    $subcategoryId = ( isset( $_GET['subcategoryId'] ) && $_GET['subcategoryId'] ) ? (int)$_GET['subcategoryId'] : null;
+    $subcategoryId = ( isset( $_GET['subcategoryId'] ) && $_GET['subcategoryId'] !== '' ) ? (int)$_GET['subcategoryId'] : null;
     
     $results['category'] = Category::getById( $categoryId );
     $results['subcategory'] = Subcategory::getById( $subcategoryId );
@@ -42,13 +42,16 @@ function archive()
     // If both category and subcategory are specified, filter by subcategory
     if ($subcategoryId && $categoryId) {
         // Get articles by both category and subcategory
-        $data = Article::getListBySubcategory($categoryId, $subcategoryId, 100000, 'publicationDate DESC', true);
+        $data = Article::getListBySubcategory($categoryId, $subcategoryId, 10000, 'publicationDate DESC', true);
+    } else if ($categoryId && $subcategoryId === 0) {
+        // Get articles by category only, excluding those with subcategories
+        $data = Article::getListWithoutSubcategory($categoryId, 10000, 'publicationDate DESC', true);
     } else if ($categoryId) {
         // Get articles by category only
-        $data = Article::getList( 100000, $results['category'] ? $results['category']->id : null, 'publicationDate DESC', true);
+        $data = Article::getList( 10000, $results['category'] ? $results['category']->id : null, 'publicationDate DESC', true);
     } else {
         // Get all articles
-        $data = Article::getList( 1000, null, 'publicationDate DESC', true);
+        $data = Article::getList( 10000, null, 'publicationDate DESC', true);
     }
     
     $results['articles'] = $data['results'];
@@ -99,7 +102,7 @@ function viewArticle()
     
     // Получаем информацию о подкатегории, если она установлена
     $results['subcategory'] = null;
-    if ($results['article']->subcategoryId) {
+    if ($results['article']->subcategoryId !== null && $results['article']->subcategoryId > 0) {
         $results['subcategory'] = Subcategory::getById($results['article']->subcategoryId);
     }
     

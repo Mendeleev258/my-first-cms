@@ -72,8 +72,10 @@ class Article
           $this->categoryId = (int) $data['categoryId'];
       }
       
-      if (isset($data['subcategoryId'])) {
+      if (isset($data['subcategoryId']) && $data['subcategoryId'] !== null && $data['subcategoryId'] !== '') {
           $this->subcategoryId = (int) $data['subcategoryId'];
+      } else {
+          $this->subcategoryId = null;
       }
       
       if (isset($data['summary'])) {
@@ -117,7 +119,9 @@ class Article
         // Обрабатываем поле subcategory
         // For now, we'll store the value but won't save it to DB until column exists
         if (isset($params['subcategoryId'])) {
-            $this->subcategoryId = (int) $params['subcategoryId'];
+            $subcategoryId = (int) $params['subcategoryId'];
+            // If subcategoryId is 0 (meaning "(none)" was selected), set it to null
+            $this->subcategoryId = ($subcategoryId > 0) ? $subcategoryId : null;
         }
     }
 
@@ -272,6 +276,61 @@ class Article
     }
     
     /**
+     * Возвращает все (или диапазон) объекты Article из базы данных, отфильтрованные по категории и без подкатегории
+     *
+     * @param int $numRows Количество возвращаемых строк (по умолчанию = 10000)
+     * @param int $categoryId ID категории
+     * @param string $order Столбец, по которому выполняется сортировка статей (по умолчанию = "publicationDate DESC")
+     * @param bool $includeInactive Включать ли неактивные статьи (по умолчанию = false)
+     * @return Array|false Двух элементный массив: results => массив объектов Article; totalRows => общее количество строк
+     */
+    public static function getListWithoutSubcategory($categoryId, $numRows=1000,
+        $order="publicationDate DESC", $includeInactive=false) {
+        global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+        $conn = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD);
+        $fromPart = "FROM articles";
+        $whereClause = "WHERE categoryId = :categoryId AND (subcategoryId IS NULL OR subcategoryId = 0)";
+        $conditions = [];
+        
+        // Добавляем условие для активных статей, если не запрошены все
+        if (!$includeInactive) {
+            $conditions[] = "active = 1";
+            $whereClause .= " AND " . implode(" AND ", $conditions);
+        }
+        
+        $sql = "SELECT *, UNIX_TIMESTAMP(publicationDate)
+                AS publicationDate
+                $fromPart $whereClause
+                ORDER BY  $order  LIMIT :numRows";
+        
+        $st = $conn->prepare($sql);
+        $st->bindValue(":numRows", $numRows, PDO::PARAM_INT);
+        $st->bindValue(":categoryId", $categoryId, PDO::PARAM_INT);
+        
+        $st->execute();
+        $list = array();
+
+        while ($row = $st->fetch()) {
+            $article = new Article($row);
+            $list[] = $article;
+        }
+
+        // Получаем общее количество статей, которые соответствуют критерию
+        $sql = "SELECT COUNT(*) AS totalRows $fromPart $whereClause";
+        $st = $conn->prepare($sql);
+        $st->bindValue(":categoryId", $categoryId, PDO::PARAM_INT);
+        $st->execute();
+        $totalRows = $st->fetch();
+        $conn = null;
+        
+        return (array(
+            "results" => $list,
+            "totalRows" => $totalRows[0]
+            )
+        );
+    }
+    
+    /**
      * Вставляем текущий объект Article в базу данных, устанавливаем его ID
      */
     public function insert() {
@@ -291,7 +350,12 @@ class Article
             $st = $conn->prepare ( $sql );
             $st->bindValue( ":publicationDate", $this->publicationDate, PDO::PARAM_INT );
             $st->bindValue( ":categoryId", $this->categoryId, PDO::PARAM_INT );
-            $st->bindValue( ":subcategoryId", $this->subcategoryId, PDO::PARAM_INT );
+            // Bind subcategoryId with proper handling of NULL values
+            if ($this->subcategoryId !== null) {
+                $st->bindValue( ":subcategoryId", $this->subcategoryId, PDO::PARAM_INT );
+            } else {
+                $st->bindValue( ":subcategoryId", null, PDO::PARAM_NULL );
+            }
             $st->bindValue( ":title", $this->title, PDO::PARAM_STR );
             $st->bindValue( ":summary", $this->summary, PDO::PARAM_STR );
             $st->bindValue( ":content", $this->content, PDO::PARAM_STR );
@@ -337,7 +401,12 @@ class Article
           $st = $conn->prepare ( $sql );
           $st->bindValue( ":publicationDate", $this->publicationDate, PDO::PARAM_INT );
           $st->bindValue( ":categoryId", $this->categoryId, PDO::PARAM_INT );
-          $st->bindValue( ":subcategoryId", $this->subcategoryId, PDO::PARAM_INT );
+          // Bind subcategoryId with proper handling of NULL values
+          if ($this->subcategoryId !== null) {
+              $st->bindValue( ":subcategoryId", $this->subcategoryId, PDO::PARAM_INT );
+          } else {
+              $st->bindValue( ":subcategoryId", null, PDO::PARAM_NULL );
+          }
           $st->bindValue( ":title", $this->title, PDO::PARAM_STR );
           $st->bindValue( ":summary", $this->summary, PDO::PARAM_STR );
           $st->bindValue( ":content", $this->content, PDO::PARAM_STR );

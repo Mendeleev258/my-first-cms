@@ -134,7 +134,17 @@ function newArticle() {
         
         // Load subcategories for the form
         $subcatData = Subcategory::getList();
+        // Group subcategories by category
+        $groupedSubcategories = array();
+        foreach ($subcatData['results'] as $subcategory) {
+            $categoryId = $subcategory->categoryId;
+            if (!isset($groupedSubcategories[$categoryId])) {
+                $groupedSubcategories[$categoryId] = array();
+            }
+            $groupedSubcategories[$categoryId][] = $subcategory;
+        }
         $results['subcategories'] = $subcatData['results'];
+        $results['groupedSubcategories'] = $groupedSubcategories;
         
         global $TEMPLATE_PATH;
         require( $TEMPLATE_PATH . "/admin/editArticle.php" );
@@ -178,7 +188,17 @@ function editArticle() {
         
         // Load subcategories for the form
         $subcatData = Subcategory::getList();
+        // Group subcategories by category
+        $groupedSubcategories = array();
+        foreach ($subcatData['results'] as $subcategory) {
+            $categoryId = $subcategory->categoryId;
+            if (!isset($groupedSubcategories[$categoryId])) {
+                $groupedSubcategories[$categoryId] = array();
+            }
+            $groupedSubcategories[$categoryId][] = $subcategory;
+        }
         $results['subcategories'] = $subcatData['results'];
+        $results['groupedSubcategories'] = $groupedSubcategories;
         
         global $TEMPLATE_PATH;
         require($TEMPLATE_PATH . "/admin/editArticle.php");
