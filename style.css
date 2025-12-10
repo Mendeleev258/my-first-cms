@@ -51,13 +51,15 @@ h1 {
   line-height: 1.2em;
 }
 
-h2, h2 a {
+h2 {
   color: #edc951;
 }
 
 h2 a {
+  color: #edc951;
   text-decoration: none;
 }
+
 
 h3.categoryDescription {
   margin-top: -20px;
@@ -105,10 +107,11 @@ h3.categoryDescription {
 .category {
   font-style: italic;
   font-weight: normal;
-  font-size: 60%;
+  font-size: 100%;
   color: #999;
-  display: block;
-  line-height: 2em;
+  display: inline-block;
+  line-height: 1.5em;
+  margin-left: 10px;
 }
 
 .category a {

@@ -149,12 +149,12 @@ class Article
     /**
     * Возвращает все (или диапазон) объекты Article из базы данных
     *
-    * @param int $numRows Количество возвращаемых строк (по умолчанию = 1000000)
+    * @param int $numRows Количество возвращаемых строк (по умолчанию = 10000)
     * @param int $categoryId Вернуть статьи только из категории с указанным ID
     * @param string $order Столбец, по которому выполняется сортировка статей (по умолчанию = "publicationDate DESC")
     * @return Array|false Двух элементный массив: results => массив объектов Article; totalRows => общее количество строк
     */
-    public static function getList($numRows=1000000, 
+    public static function getList($numRows=100000, 
         $categoryId=null, $order="publicationDate DESC", $includeInactive=false) {
         global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
         $conn = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD);
@@ -213,6 +213,64 @@ class Article
         );
 }
 
+    /**
+     * Возвращает все (или диапазон) объекты Article из базы данных, отфильтрованные по подкатегории
+     *
+     * @param int $numRows Количество возвращаемых строк (по умолчанию = 10000)
+     * @param int $categoryId ID категории
+     * @param int $subcategoryId ID подкатегории
+     * @param string $order Столбец, по которому выполняется сортировка статей (по умолчанию = "publicationDate DESC")
+     * @param bool $includeInactive Включать ли неактивные статьи (по умолчанию = false)
+     * @return Array|false Двух элементный массив: results => массив объектов Article; totalRows => общее количество строк
+     */
+    public static function getListBySubcategory($categoryId, $subcategoryId, $numRows=1000,
+        $order="publicationDate DESC", $includeInactive=false) {
+        global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
+        $conn = new PDO($DB_DSN, $DB_USERNAME, $DB_PASSWORD);
+        $fromPart = "FROM articles";
+        $whereClause = "WHERE categoryId = :categoryId AND subcategoryId = :subcategoryId";
+        $conditions = [];
+        
+        // Добавляем условие для активных статей, если не запрошены все
+        if (!$includeInactive) {
+            $conditions[] = "active = 1";
+            $whereClause .= " AND " . implode(" AND ", $conditions);
+        }
+        
+        $sql = "SELECT *, UNIX_TIMESTAMP(publicationDate)
+                AS publicationDate
+                $fromPart $whereClause
+                ORDER BY  $order  LIMIT :numRows";
+        
+        $st = $conn->prepare($sql);
+        $st->bindValue(":numRows", $numRows, PDO::PARAM_INT);
+        $st->bindValue(":categoryId", $categoryId, PDO::PARAM_INT);
+        $st->bindValue(":subcategoryId", $subcategoryId, PDO::PARAM_INT);
+        
+        $st->execute();
+        $list = array();
+
+        while ($row = $st->fetch()) {
+            $article = new Article($row);
+            $list[] = $article;
+        }
+
+        // Получаем общее количество статей, которые соответствуют критерию
+        $sql = "SELECT COUNT(*) AS totalRows $fromPart $whereClause";
+        $st = $conn->prepare($sql);
+        $st->bindValue(":categoryId", $categoryId, PDO::PARAM_INT);
+        $st->bindValue(":subcategoryId", $subcategoryId, PDO::PARAM_INT);
+        $st->execute();
+        $totalRows = $st->fetch();
+        $conn = null;
+        
+        return (array(
+            "results" => $list,
+            "totalRows" => $totalRows[0]
+            )
+        );
+    }
+    
     /**
      * Вставляем текущий объект Article в базу данных, устанавливаем его ID
      */

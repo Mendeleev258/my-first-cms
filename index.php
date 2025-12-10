@@ -34,10 +34,22 @@ function archive()
     $results = [];
     
     $categoryId = ( isset( $_GET['categoryId'] ) && $_GET['categoryId'] ) ? (int)$_GET['categoryId'] : null;
+    $subcategoryId = ( isset( $_GET['subcategoryId'] ) && $_GET['subcategoryId'] ) ? (int)$_GET['subcategoryId'] : null;
     
     $results['category'] = Category::getById( $categoryId );
+    $results['subcategory'] = Subcategory::getById( $subcategoryId );
     
-    $data = Article::getList( 100000, $results['category'] ? $results['category']->id : null, 'publicationDate DESC', true);
+    // If both category and subcategory are specified, filter by subcategory
+    if ($subcategoryId && $categoryId) {
+        // Get articles by both category and subcategory
+        $data = Article::getListBySubcategory($categoryId, $subcategoryId, 100000, 'publicationDate DESC', true);
+    } else if ($categoryId) {
+        // Get articles by category only
+        $data = Article::getList( 100000, $results['category'] ? $results['category']->id : null, 'publicationDate DESC', true);
+    } else {
+        // Get all articles
+        $data = Article::getList( 1000, null, 'publicationDate DESC', true);
+    }
     
     $results['articles'] = $data['results'];
     $results['totalRows'] = $data['totalRows'];
@@ -49,7 +61,14 @@ function archive()
         $results['categories'][$category->id] = $category;
     }
     
-    $results['pageHeading'] = $results['category'] ?  $results['category']->name : "Article Archive";
+    if ($results['subcategory']) {
+        $results['pageHeading'] = $results['subcategory']->name . " (" . ($results['category'] ? $results['category']->name : "All Categories") . ")";
+    } else if ($results['category']) {
+        $results['pageHeading'] = $results['category']->name;
+    } else {
+        $results['pageHeading'] = "Article Archive";
+    }
+    
     $results['pageTitle'] = $results['pageHeading'] . " | Widget News";
     
     global $TEMPLATE_PATH;

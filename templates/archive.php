@@ -15,18 +15,29 @@
                     <span class="pubDate">
                         <?php echo date('j F Y', $article->publicationDate)?>
                     </span>
-                    <a href=".?action=viewArticle&amp;articleId=<?php echo $article->id?>">
+                    <a href=".?action=viewArticle&articleId=<?php echo $article->id?>">
                         <?php echo htmlspecialchars( $article->title )?>
                     </a>
 
                     <?php if ( !$results['category'] && $article->categoryId ) { ?>
                     <span class="category">
                         in 
-                        <a href=".?action=archive&amp;categoryId=<?php echo $article->categoryId?>">
+                        <a href=".?action=archive&categoryId=<?php echo $article->categoryId?>">
                             <?php echo htmlspecialchars( $results['categories'][$article->categoryId]->name ) ?>
                         </a>
                     </span>
-                    <?php } ?>          
+                    <?php } ?>
+                    
+                    <?php if ( $article->subcategoryId ) { 
+                        $subcategory = Subcategory::getById($article->subcategoryId);
+                        if ($subcategory) { ?>
+                        <span class="subcategory">
+                            in 
+                            <a href=".?action=archive&categoryId=<?php echo $article->categoryId?>&subcategoryId=<?php echo $subcategory->id?>">
+                                <?php echo htmlspecialchars($subcategory->name) ?>
+                            </a>
+                        </span>
+                    <?php }} ?>          
                 </h2>
               <p class="summary"><?php echo htmlspecialchars( $article->summary )?></p>
             </li>

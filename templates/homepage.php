@@ -7,24 +7,35 @@
                     <?php echo date('j F', $article->publicationDate)?>
                 </span>
                 
-                <a href=".?action=viewArticle&amp;articleId=<?php echo $article->id?>">
+                <a href=".?action=viewArticle&articleId=<?php echo $article->id?>">
                     <?php echo htmlspecialchars( $article->title )?>
                 </a>
-                
-                <?php if (isset($article->categoryId)) { ?>
-                    <span class="category">
-                        in 
-                        <a href=".?action=archive&amp;categoryId=<?php echo $article->categoryId?>">
-                            <?php echo htmlspecialchars($results['categories'][$article->categoryId]->name )?>
-                        </a>
-                    </span>
-                <?php } 
-                else { ?>
-                    <span class="category">
-                        <?php echo "Без категории"?>
-                    </span>
-                <?php } ?>
             </h2>
+                
+            <?php if (isset($article->categoryId)) { ?>
+                <span class="category">
+                    in
+                    <a href=".?action=archive&categoryId=<?php echo $article->categoryId?>">
+                        <?php echo htmlspecialchars($results['categories'][$article->categoryId]->name )?>
+                    </a>
+                </span>
+            <?php }
+            else { ?>
+                <span class="category">
+                    <?php echo "Без категории"?>
+                </span>
+            <?php } ?>
+            
+            <?php if (isset($article->subcategoryId) && $article->subcategoryId) {
+                $subcategory = Subcategory::getById($article->subcategoryId);
+                if ($subcategory) { ?>
+                <span class="category">
+                    in
+                    <a href=".?action=archive&categoryId=<?php echo $article->categoryId?>&subcategoryId=<?php echo $subcategory->id?>">
+                        <?php echo htmlspecialchars($subcategory->name) ?>
+                    </a>
+                </span>
+            <?php }} ?>
             <p class="summary">
                 <?php 
                 // Берем первые 50 символов из content и добавляем многоточие
@@ -38,12 +49,12 @@
             <img id="loader-identity" src="JS/ajax-loader.gif" alt="gif">
             
             <ul class="ajax-load">
-                <li><a href=".?action=viewArticle&amp;articleId=<?php echo $article->id?>" class="ajaxArticleBodyByPost" data-contentId="<?php echo $article->id?>">Показать продолжение (POST)</a></li>
-                <li><a href=".?action=viewArticle&amp;articleId=<?php echo $article->id?>" class="ajaxArticleBodyByGet" data-contentId="<?php echo $article->id?>">Показать продолжение (GET)</a></li>
-                <li><a href=".?action=viewArticle&amp;articleId=<?php echo $article->id?>" class="">(POST) -- NEW</a></li>
-                <li><a href=".?action=viewArticle&amp;articleId=<?php echo $article->id?>" class="">(GET)  -- NEW</a></li>
+                <li><a href=".?action=viewArticle&articleId=<?php echo $article->id?>" class="ajaxArticleBodyByPost" data-contentId="<?php echo $article->id?>">Показать продолжение (POST)</a></li>
+                <li><a href=".?action=viewArticle&articleId=<?php echo $article->id?>" class="ajaxArticleBodyByGet" data-contentId="<?php echo $article->id?>">Показать продолжение (GET)</a></li>
+                <li><a href=".?action=viewArticle&articleId=<?php echo $article->id?>" class="">(POST) -- NEW</a></li>
+                <li><a href=".?action=viewArticle&articleId=<?php echo $article->id?>" class="">(GET)  -- NEW</a></li>
             </ul>
-            <a href=".?action=viewArticle&amp;articleId=<?php echo $article->id?>" class="showContent" data-contentId="<?php echo $article->id?>">Показать полностью</a>
+            <a href=".?action=viewArticle&articleId=<?php echo $article->id?>" class="showContent" data-contentId="<?php echo $article->id?>">Показать полностью</a>
         </li>
     <?php } ?>
     </ul>
