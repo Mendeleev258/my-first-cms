@@ -13,6 +13,12 @@
     <?php if ( isset( $results['errorMessage'] ) ) { ?>
             <div class="errorMessage"><?php echo $results['errorMessage'] ?></div>
     <?php } ?>
+    
+    <?php if ( isset( $results['errors'] ) && is_array($results['errors']) && count($results['errors']) > 0 ) { ?>
+        <?php foreach ( $results['errors'] as $error ) { ?>
+            <div class="errorMessage"><?php echo $error ?></div>
+        <?php } ?>
+    <?php } ?>
 
             <ul>
 

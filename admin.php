@@ -111,16 +111,57 @@ function newArticle() {
 //            print_r($_POST);
 //            echo "<pre>";
 //            В $_POST данные о статье сохраняются корректно
-        // Пользователь получает форму редактирования статьи: сохраняем новую статью
-        $article = new Article();
-        $article->storeFormValues( $_POST );
-//            echo "<pre>";
-//            print_r($article);
-//            echo "<pre>";
-//            А здесь данные массива $article уже неполные(есть только Число от даты, категория и полный текст статьи)          
-        $article->insert();
-        header( "Location: admin.php?status=changesSaved" );
-
+        
+        // Проверяем, что выбранная подкатегория соответствует выбранной категории
+        $errors = array();
+        $categoryId = (int)$_POST['categoryId'];
+        $subcategoryId = (int)$_POST['subcategoryId'];
+        
+        if ($subcategoryId > 0) {
+            // Получаем информацию о подкатегории
+            $subcategory = Subcategory::getById($subcategoryId);
+            if ($subcategory && $subcategory->categoryId != $categoryId) {
+                $errors[] = "Ошибка: Выбранная категория не соответствует подкатегории!";
+            }
+        }
+        
+        if (!empty($errors)) {
+            // Если есть ошибки, возвращаем пользователя обратно к форме с данными и ошибками
+            $article = new Article();
+            $article->storeFormValues($_POST);
+            $results['article'] = $article;
+            $results['errors'] = $errors;
+            
+            $data = Category::getList();
+            $results['categories'] = $data['results'];
+            
+            // Load subcategories for the form
+            $subcatData = Subcategory::getList();
+            // Group subcategories by category
+            $groupedSubcategories = array();
+            foreach ($subcatData['results'] as $subcategory_item) {
+                $categoryId_temp = $subcategory_item->categoryId;
+                if (!isset($groupedSubcategories[$categoryId_temp])) {
+                    $groupedSubcategories[$categoryId_temp] = array();
+                }
+                $groupedSubcategories[$categoryId_temp][] = $subcategory_item;
+            }
+            $results['subcategories'] = $subcatData['results'];
+            $results['groupedSubcategories'] = $groupedSubcategories;
+            
+            global $TEMPLATE_PATH;
+            require($TEMPLATE_PATH . "/admin/editArticle.php");
+        } else {
+            // Пользователь получает форму редактирования статьи: сохраняем новую статью
+            $article = new Article();
+            $article->storeFormValues( $_POST );
+    //            echo "<pre>";
+    //            print_r($article);
+    //            echo "<pre>";
+    //            А здесь данные массива $article уже неполные(есть только Число от даты, категория и полный текст статьи)
+            $article->insert();
+            header( "Location: admin.php?status=changesSaved" );
+        }
     } elseif ( isset( $_POST['cancel'] ) ) {
 
         // Пользователь сбросил результаты редактирования: возвращаемся к списку статей
@@ -170,10 +211,50 @@ function editArticle() {
             header( "Location: admin.php?error=articleNotFound" );
             return;
         }
-
-        $article->storeFormValues( $_POST );
-        $article->update();
-        header( "Location: admin.php?status=changesSaved" );
+        
+        // Проверяем, что выбранная подкатегория соответствует выбранной категории
+        $errors = array();
+        $categoryId = (int)$_POST['categoryId'];
+        $subcategoryId = (int)$_POST['subcategoryId'];
+        
+        if ($subcategoryId > 0) {
+            // Получаем информацию о подкатегории
+            $subcategory = Subcategory::getById($subcategoryId);
+            if ($subcategory && $subcategory->categoryId != $categoryId) {
+                $errors[] = "Ошибка: Выбранная категория не соответствует подкатегории!";
+            }
+        }
+        
+        if (!empty($errors)) {
+            // Если есть ошибки, возвращаем пользователя обратно к форме с данными и ошибками
+            $article->storeFormValues($_POST);
+            $results['article'] = $article;
+            $results['errors'] = $errors;
+            
+            $data = Category::getList();
+            $results['categories'] = $data['results'];
+            
+            // Load subcategories for the form
+            $subcatData = Subcategory::getList();
+            // Group subcategories by category
+            $groupedSubcategories = array();
+            foreach ($subcatData['results'] as $subcategory_item) {
+                $categoryId_temp = $subcategory_item->categoryId;
+                if (!isset($groupedSubcategories[$categoryId_temp])) {
+                    $groupedSubcategories[$categoryId_temp] = array();
+                }
+                $groupedSubcategories[$categoryId_temp][] = $subcategory_item;
+            }
+            $results['subcategories'] = $subcatData['results'];
+            $results['groupedSubcategories'] = $groupedSubcategories;
+            
+            global $TEMPLATE_PATH;
+            require($TEMPLATE_PATH . "/admin/editArticle.php");
+        } else {
+            $article->storeFormValues( $_POST );
+            $article->update();
+            header( "Location: admin.php?status=changesSaved" );
+        }
 
     } elseif ( isset( $_POST['cancel'] ) ) {
 
