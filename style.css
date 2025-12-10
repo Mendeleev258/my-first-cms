@@ -37,7 +37,7 @@ body {
   font-size: .8em;
 }
 
-#loader-identity {
+.loader-identity {
     display : none;
     float : right;
 }
@@ -107,15 +107,30 @@ h3.categoryDescription {
 .category {
   font-style: italic;
   font-weight: normal;
-  font-size: 100%;
+  font-size: 80%;
   color: #999;
-  display: inline-block;
+  display: block;
   line-height: 1.5em;
   margin-left: 10px;
 }
 
 .category a {
   color: #999;
+  text-decoration: underline;
+}
+
+.subcategory {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 70%;
+  color: #aaa;
+  display: block;
+  line-height: 1.5em;
+  margin-left: 10px;
+}
+
+.subcategory a {
+  color: #aaa;
   text-decoration: underline;
 }
 

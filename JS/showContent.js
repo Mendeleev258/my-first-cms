@@ -1,64 +1,51 @@
-$(function(){
-    
-    console.log('Привет, это страый js ))');
+$(document).ready(function(){
     init_get();
     init_post();
 });
 
 function init_get() 
 {
-    $('a.ajaxArticleBodyByGet').one('click', function(){
+    $('a.showContentGETmethod').on('click', function(){
         var contentId = $(this).attr('data-contentId');
-        console.log('ID статьи = ', contentId); 
-        showLoaderIdentity();
+        showLoaderIdentity(contentId);
         $.ajax({
-            url:'/ajax/showContentsHandler.php?articleId=' + contentId, 
-            dataType: 'json'
+            url:'./ajax/showContentsHandler.php?articleId=' + contentId
         })
-        .done (function(obj){
-            hideLoaderIdentity();
+        .done (function(){
+            hideLoaderIdentity(contentId);
             console.log('Ответ получен');
-            $('li.' + contentId).append(obj);
+            // Перенаправляем на страницу просмотра статьи
+            window.location.href = '.?action=viewArticle&articleId=' + contentId;
         })
-        .fail(function(xhr, status, error){
-            hideLoaderIdentity();
-    
-            console.log('ajaxError xhr:', xhr); // выводим значения переменных
-            console.log('ajaxError status:', status);
-            console.log('ajaxError error:', error);
-    
-            console.log('Ошибка соединения при получении данных (GET)');
+        .fail(function(){
+            hideLoaderIdentity(contentId);
+            console.log('Ошибка соединения с сервером');
         });
         
         return false;
         
-    });  
+    });
 }
 
 function init_post() 
 {
-    $('a.ajaxArticleBodyByPost').one('click', function(){
+    $('a.showContentPOSTmethod').on('click', function(){
         var content = $(this).attr('data-contentId');
-        showLoaderIdentity();
+        showLoaderIdentity(content);
         $.ajax({
-            url:'/ajax/showContentsHandler.php', 
-            dataType: 'text',
-//            converters: 'json text',
+            url:'./ajax/showContentsHandler.php',
+            data: ({articleId: content}),
             method: 'POST'
         })
-        .done (function(obj){
-            hideLoaderIdentity();
-            console.log('Ответ получен', obj);
-            $('li.' + content).append(obj);
+        .done (function(){
+            hideLoaderIdentity(content);
+            console.log('Ответ получен');
+            // Перенаправляем на страницу просмотра статьи
+            window.location.href = '.?action=viewArticle&articleId=' + content;
         })
-        .fail(function(xhr, status, error){
-            hideLoaderIdentity();
-    
-    
-            console.log('Ошибка соединения с сервером (POST)');
-            console.log('ajaxError xhr:', xhr); // выводим значения переменных
-            console.log('ajaxError status:', status);
-            console.log('ajaxError error:', error);
+        .fail(function(){
+            hideLoaderIdentity(content);
+            console.log('Ошибка соединения с сервером');
         });
         
         return false;
