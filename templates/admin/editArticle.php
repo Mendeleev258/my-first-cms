@@ -42,6 +42,16 @@
               </li>
 
               <li>
+                <label for="subcategoryId">Article Subcategory</label>
+                <select name="subcategoryId">
+                  <option value="0"<?php echo !$results['article']->subcategoryId ? " selected" : ""?>>(none)</option>
+                <?php foreach ( $results['subcategories'] as $subcategory ) { ?>
+                  <option value="<?php echo $subcategory->id?>"<?php echo ( $subcategory->id == $results['article']->subcategoryId ) ? " selected" : ""?>><?php echo htmlspecialchars( $subcategory->name )?></option>
+                <?php } ?>
+                </select>
+              </li>
+
+              <li>
                 <label for="publicationDate">Publication Date</label>
                 <input type="date" name="publicationDate" id="publicationDate" placeholder="YYYY-MM-DD" required maxlength="10" value="<?php echo $results['article']->publicationDate ? date( "Y-m-d", $results['article']->publicationDate ) : "" ?>" />
               </li>

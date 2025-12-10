@@ -7,8 +7,15 @@
     
     <?php if ( $results['category'] ) { ?>
         in 
-        <a href="./?action=archive&amp;categoryId=<?php echo $results['category']->id?>">
+        <a href="./?action=archive&categoryId=<?php echo $results['category']->id?>">
             <?php echo htmlspecialchars($results['category']->name) ?>
+        </a>
+    <?php } ?>
+    
+    <?php if ( $results['subcategory'] ) { ?>
+        in 
+        <a href="./?action=archive&categoryId=<?php echo $results['category']->id?>&subcategoryId=<?php echo $results['subcategory']->id?>">
+            <?php echo htmlspecialchars($results['subcategory']->name) ?>
         </a>
     <?php } ?>
         

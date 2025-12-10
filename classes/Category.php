@@ -111,7 +111,7 @@ class Category
     $sql = "SELECT COUNT(*) AS totalRows $fromPart";
     $totalRows = $conn->query( $sql )->fetch();
     $conn = null;
-    return ( array ( "results" => $list, "totalRows" => $totalRows[0] ) );
+    return (array("results" => $list, "totalRows" => $totalRows[0]));
     }
 
 

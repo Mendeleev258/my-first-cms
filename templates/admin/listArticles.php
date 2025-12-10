@@ -16,6 +16,7 @@
               <th>Publication Date</th>
               <th>Article</th>
               <th>Category</th>
+              <th>Subcategory</th>  <!-- Добавляем заголовок колонки подкатегории -->
               <th>Active</th>  <!-- Добавляем заголовок колонки -->
             </tr>
 
@@ -38,8 +39,21 @@
                 }?>
               </td>
               <td>
+                <?php
+                if(isset ($article->subcategoryId) && $article->subcategoryId) {
+                    if (isset($results['subcategories'][$article->subcategoryId])) {
+                        echo $results['subcategories'][$article->subcategoryId]->name;
+                    } else {
+                        echo "N/A";
+                    }
+                }
+                else {
+                    echo "Без подкатегории";
+                }?>
+              </td>
+              <td>
                 <!-- Добавляем отображение статуса активности -->
-                <?php 
+                <?php
                 if (isset($article->active)) {
                     echo $article->active ? 'Да' : 'Нет';
                 } else {

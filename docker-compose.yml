@@ -11,9 +11,7 @@ services:
     volumes:
       - cms_db_data:/var/lib/mysql
       - ./db_cms.sql:/docker-entrypoint-initdb.d/init.sql
-      # config-local.php больше не используется, все конфигурации в config.php
-      # Дамп базы данных включает в себя проверку и добавление столбца active при необходимости
-
+      
   web:
     build: .
     container_name: cms_web

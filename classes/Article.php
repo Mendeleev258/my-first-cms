@@ -22,9 +22,14 @@ class Article
     public $title = null;
 
      /**
-    * @var int ID категории статьи
-    */
-    public $categoryId = null;
+     * @var int ID категории статьи
+     */
+     public $categoryId = null;
+     
+     /**
+     * @var int ID подкатегории статьи
+     */
+     public $subcategoryId = null;
 
     /**
     * @var string Краткое описание статьи
@@ -64,11 +69,15 @@ class Article
       }
       
       if (isset($data['categoryId'])) {
-          $this->categoryId = (int) $data['categoryId'];      
+          $this->categoryId = (int) $data['categoryId'];
+      }
+      
+      if (isset($data['subcategoryId'])) {
+          $this->subcategoryId = (int) $data['subcategoryId'];
       }
       
       if (isset($data['summary'])) {
-          $this->summary = $data['summary'];         
+          $this->summary = $data['summary'];
       }
       
       if (isset($data['content'])) {
@@ -104,6 +113,12 @@ class Article
         if (!isset($params['active'])) {
             $this->active = 0; // Если checkbox не отмечен
         }
+        
+        // Обрабатываем поле subcategory
+        // For now, we'll store the value but won't save it to DB until column exists
+        if (isset($params['subcategoryId'])) {
+            $this->subcategoryId = (int) $params['subcategoryId'];
+        }
     }
 
 
@@ -125,7 +140,7 @@ class Article
         $row = $st->fetch();
         $conn = null;
         
-        if ($row) { 
+        if ($row) {
             return new Article($row);
         }
     }
@@ -199,8 +214,8 @@ class Article
 }
 
     /**
-    * Вставляем текущий объект Article в базу данных, устанавливаем его ID
-    */
+     * Вставляем текущий объект Article в базу данных, устанавливаем его ID
+     */
     public function insert() {
 
         // Есть уже у объекта Article ID?
@@ -209,14 +224,31 @@ class Article
         // Вставляем статью
         global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
         $conn = new PDO( $DB_DSN, $DB_USERNAME, $DB_PASSWORD );
-        $sql = "INSERT INTO articles ( publicationDate, categoryId, title, summary, content, active ) VALUES ( FROM_UNIXTIME(:publicationDate), :categoryId, :title, :summary, :content, :active )";
-        $st = $conn->prepare ( $sql );
-        $st->bindValue( ":publicationDate", $this->publicationDate, PDO::PARAM_INT );
-        $st->bindValue( ":categoryId", $this->categoryId, PDO::PARAM_INT );
-        $st->bindValue( ":title", $this->title, PDO::PARAM_STR );
-        $st->bindValue( ":summary", $this->summary, PDO::PARAM_STR );
-        $st->bindValue( ":content", $this->content, PDO::PARAM_STR );
-        $st->bindValue( ":active", $this->active, PDO::PARAM_INT );
+        
+        // Check if subcategoryId column exists in the database
+        $columnCheck = $conn->query("SHOW COLUMNS FROM articles LIKE 'subcategoryId'");
+        if ($columnCheck->rowCount() > 0) {
+            // Column exists, include subcategoryId in the query
+            $sql = "INSERT INTO articles ( publicationDate, categoryId, subcategoryId, title, summary, content, active ) VALUES ( FROM_UNIXTIME(:publicationDate), :categoryId, :subcategoryId, :title, :summary, :content, :active )";
+            $st = $conn->prepare ( $sql );
+            $st->bindValue( ":publicationDate", $this->publicationDate, PDO::PARAM_INT );
+            $st->bindValue( ":categoryId", $this->categoryId, PDO::PARAM_INT );
+            $st->bindValue( ":subcategoryId", $this->subcategoryId, PDO::PARAM_INT );
+            $st->bindValue( ":title", $this->title, PDO::PARAM_STR );
+            $st->bindValue( ":summary", $this->summary, PDO::PARAM_STR );
+            $st->bindValue( ":content", $this->content, PDO::PARAM_STR );
+            $st->bindValue( ":active", $this->active, PDO::PARAM_INT );
+        } else {
+            // Column doesn't exist, exclude subcategoryId from the query
+            $sql = "INSERT INTO articles ( publicationDate, categoryId, title, summary, content, active ) VALUES ( FROM_UNIXTIME(:publicationDate), :categoryId, :title, :summary, :content, :active )";
+            $st = $conn->prepare ( $sql );
+            $st->bindValue( ":publicationDate", $this->publicationDate, PDO::PARAM_INT );
+            $st->bindValue( ":categoryId", $this->categoryId, PDO::PARAM_INT );
+            $st->bindValue( ":title", $this->title, PDO::PARAM_STR );
+            $st->bindValue( ":summary", $this->summary, PDO::PARAM_STR );
+            $st->bindValue( ":content", $this->content, PDO::PARAM_STR );
+            $st->bindValue( ":active", $this->active, PDO::PARAM_INT );
+        }
         $st->execute();
         $this->id = $conn->lastInsertId();
         $conn = null;
@@ -235,18 +267,39 @@ class Article
       // Обновляем статью
       global $DB_DSN, $DB_USERNAME, $DB_PASSWORD;
       $conn = new PDO( $DB_DSN, $DB_USERNAME, $DB_PASSWORD );
-      $sql = "UPDATE articles SET publicationDate=FROM_UNIXTIME(:publicationDate),"
-              . " categoryId=:categoryId, title=:title, summary=:summary,"
-              . " content=:content, active=:active WHERE id = :id";
       
-      $st = $conn->prepare ( $sql );
-      $st->bindValue( ":publicationDate", $this->publicationDate, PDO::PARAM_INT );
-      $st->bindValue( ":categoryId", $this->categoryId, PDO::PARAM_INT );
-      $st->bindValue( ":title", $this->title, PDO::PARAM_STR );
-      $st->bindValue( ":summary", $this->summary, PDO::PARAM_STR );
-      $st->bindValue( ":content", $this->content, PDO::PARAM_STR );
-      $st->bindValue( ":active", $this->active, PDO::PARAM_INT );
-      $st->bindValue( ":id", $this->id, PDO::PARAM_INT );
+      // Check if subcategoryId column exists in the database
+      $columnCheck = $conn->query("SHOW COLUMNS FROM articles LIKE 'subcategoryId'");
+      if ($columnCheck->rowCount() > 0) {
+          // Column exists, include subcategoryId in the query
+          $sql = "UPDATE articles SET publicationDate=FROM_UNIXTIME(:publicationDate),"
+                  . " categoryId=:categoryId, subcategoryId=:subcategoryId, title=:title, summary=:summary,"
+                  . " content=:content, active=:active WHERE id = :id";
+          
+          $st = $conn->prepare ( $sql );
+          $st->bindValue( ":publicationDate", $this->publicationDate, PDO::PARAM_INT );
+          $st->bindValue( ":categoryId", $this->categoryId, PDO::PARAM_INT );
+          $st->bindValue( ":subcategoryId", $this->subcategoryId, PDO::PARAM_INT );
+          $st->bindValue( ":title", $this->title, PDO::PARAM_STR );
+          $st->bindValue( ":summary", $this->summary, PDO::PARAM_STR );
+          $st->bindValue( ":content", $this->content, PDO::PARAM_STR );
+          $st->bindValue( ":active", $this->active, PDO::PARAM_INT );
+          $st->bindValue( ":id", $this->id, PDO::PARAM_INT );
+      } else {
+          // Column doesn't exist, exclude subcategoryId from the query
+          $sql = "UPDATE articles SET publicationDate=FROM_UNIXTIME(:publicationDate),"
+                  . " categoryId=:categoryId, title=:title, summary=:summary,"
+                  . " content=:content, active=:active WHERE id = :id";
+          
+          $st = $conn->prepare ( $sql );
+          $st->bindValue( ":publicationDate", $this->publicationDate, PDO::PARAM_INT );
+          $st->bindValue( ":categoryId", $this->categoryId, PDO::PARAM_INT );
+          $st->bindValue( ":title", $this->title, PDO::PARAM_STR );
+          $st->bindValue( ":summary", $this->summary, PDO::PARAM_STR );
+          $st->bindValue( ":content", $this->content, PDO::PARAM_STR );
+          $st->bindValue( ":active", $this->active, PDO::PARAM_INT );
+          $st->bindValue( ":id", $this->id, PDO::PARAM_INT );
+      }
       $st->execute();
       $conn = null;
     }

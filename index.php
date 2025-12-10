@@ -37,7 +37,7 @@ function archive()
     
     $results['category'] = Category::getById( $categoryId );
     
-    $data = Article::getList( 100000, $results['category'] ? $results['category']->id : null );
+    $data = Article::getList( 100000, $results['category'] ? $results['category']->id : null, 'publicationDate DESC', true);
     
     $results['articles'] = $data['results'];
     $results['totalRows'] = $data['totalRows'];
@@ -61,8 +61,8 @@ function archive()
  * 
  * @return null
  */
-function viewArticle() 
-{   
+function viewArticle()
+{
     if ( !isset($_GET["articleId"]) || !$_GET["articleId"] ) {
       homepage();
       return;
@@ -77,6 +77,13 @@ function viewArticle()
     }
     
     $results['category'] = Category::getById($results['article']->categoryId);
+    
+    // Получаем информацию о подкатегории, если она установлена
+    $results['subcategory'] = null;
+    if ($results['article']->subcategoryId) {
+        $results['subcategory'] = Subcategory::getById($results['article']->subcategoryId);
+    }
+    
     $results['pageTitle'] = $results['article']->title . " | Простая CMS";
     
     global $TEMPLATE_PATH;

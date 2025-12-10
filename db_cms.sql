@@ -26,13 +26,16 @@ CREATE TABLE `articles` (
   `id` smallint unsigned NOT NULL AUTO_INCREMENT,
   `publicationDate` date NOT NULL,
   `categoryId` smallint unsigned NOT NULL,
+  `subcategoryId` smallint unsigned DEFAULT NULL,
   `title` varchar(255) NOT NULL,
   `summary` text NOT NULL,
   `content` mediumtext NOT NULL,
   `active` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `fk_articles_category` (`categoryId`),
-  CONSTRAINT `fk_articles_category` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`id`) ON UPDATE CASCADE
+  KEY `fk_articles_subcategory` (`subcategoryId`),
+  CONSTRAINT `fk_articles_category` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_articles_subcategory` FOREIGN KEY (`subcategoryId`) REFERENCES `subcategories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -69,6 +72,32 @@ LOCK TABLES `categories` WRITE;
 /*!40000 ALTER TABLE `categories` DISABLE KEYS */;
 INSERT INTO `categories` VALUES (1,'Первый сорт','Это первая созданная категория, она была отредактирована после отладки ошибок'),(3,'Статьи про preg_replace','Здесь будут сохранены факты о функции preg_replace с целью понять, зачем же она понадобилась создателю сайта');
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `subcategories`
+--
+
+DROP TABLE IF EXISTS `subcategories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `subcategories` (
+  `id` smallint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `categoryId` smallint unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_subcategories_category` (`categoryId`),
+  CONSTRAINT `fk_subcategories_category` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `subcategories`
+--
+
+LOCK TABLES `subcategories` WRITE;
+/*!40000 ALTER TABLE `subcategories` DISABLE KEYS */;
+/*!40000 ALTER TABLE `subcategories` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
