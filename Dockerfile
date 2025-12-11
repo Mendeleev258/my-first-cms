@@ -12,8 +12,6 @@ COPY . /var/www/html/
 # Установка прав на директории
 RUN chown -R www-data:www-data /var/www/html/
 
-# config-local.php больше не используется, все конфигурации в config.php
-
 # Установка разрешений для конфигурационных файлов
 RUN chmod 644 /var/www/html/config.php
 
